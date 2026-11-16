@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Microbe Lab: Ecology Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#050A18;--ink:#E6EEFF;--mut:#8AA0C8;--card:#0B1530;--line:#1B2C5A;--ac:#22D3EE;--ar:34,211,238;--ok:#4ADE80;--bad:#FB7185;--am:#FBBF24;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -10%,rgba(var(--ar),.18),transparent 55%),var(--bg);color:var(--ink);font-family:"Space Grotesk",system-ui,sans-serif;line-height:1.45;overflow-x:hidden}
+body.pad main{padding-bottom:240px}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+main{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:14px 16px 30px}
+.mono{font-family:"Space Mono",monospace}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lab{font-family:"Space Mono",monospace;font-weight:700;letter-spacing:.14em;font-size:.8rem;color:var(--ac)}
+.lab small{display:block;color:var(--mut);letter-spacing:.2em;font-size:.65rem}
+.st{display:flex;align-items:center;gap:10px;font-family:"Space Mono",monospace;font-weight:700}
+#score{color:var(--am)}
+.ex{font:inherit;font-size:.75rem;font-weight:700;letter-spacing:.1em;color:var(--bad);background:transparent;border:1px solid var(--bad);padding:6px 12px;cursor:pointer}
+.hide{display:none!important}
+.hp{display:flex;align-items:center;gap:10px;margin:12px 0 4px;font-family:"Space Mono",monospace;font-size:.68rem;letter-spacing:.12em;color:var(--mut)}
+.bar{position:relative;flex:1;height:12px;background:#0E1B40;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--ac);box-shadow:0 0 12px var(--ac);transition:width .5s,background .5s}
+.bar:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 10px,var(--bg) 10px 12px)}
+.bar.low i{background:var(--bad);box-shadow:0 0 12px var(--bad)}
+.lvl{font-family:"Space Mono",monospace;font-size:.72rem;letter-spacing:.1em;color:var(--mut);margin:8px 0 10px;text-transform:uppercase}
+.lvl b{color:var(--ac)}
+.card{background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,rgba(var(--ar),.9),rgba(167,139,250,.5)) border-box;border:1.5px solid transparent;border-radius:6px;padding:16px;box-shadow:0 0 30px rgba(var(--ar),.12)}
+#art svg{display:block;width:100%;max-height:240px;margin-bottom:6px}
+h2{font-size:1.15rem;font-weight:700;margin:4px 0 12px;line-height:1.3}
+.opt{display:block;width:100%;text-align:left;font:inherit;font-weight:600;color:var(--ink);background:#0E1B40;border:1px solid var(--line);border-left:4px solid var(--ac);padding:12px 14px;margin:8px 0;cursor:pointer;transition:background .15s,transform .08s}
+.opt:hover{background:#13245A}.opt:active{transform:scale(.99)}
+.opt.ok{border-color:var(--ok);background:rgba(74,222,128,.14)}
+.opt.bad{border-color:var(--bad);background:rgba(251,113,133,.14);animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.opt:focus-visible,.btn:focus-visible,.zb:focus-visible,.mc:focus-visible,.pr:focus-visible{outline:2px solid var(--am);outline-offset:2px}
+.msg{text-align:center;color:var(--mut);font-size:.88rem;margin:8px 0;min-height:1.3em}
+.zs{display:grid;gap:0;border:1px solid var(--line)}
+.zb{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);cursor:pointer;border:0;border-bottom:1px solid var(--line);padding:14px 12px;min-height:64px;background:linear-gradient(90deg,rgba(var(--ar),calc(.32 - var(--i)*.09)),rgba(5,10,24,.9))}
+.zb:last-child{border-bottom:0}.zb b{display:block;font-size:.95rem}
+.pl{display:inline-block;margin:6px 6px 0 0;padding:3px 8px;border:1px solid var(--ok);color:var(--ok);font-size:.78rem;font-family:"Space Mono",monospace}
+.pool{display:flex;flex-wrap:wrap;gap:8px}
+.mc{font:inherit;font-weight:600;font-size:.88rem;color:var(--ink);background:#0E1B40;border:1px solid var(--ac);padding:8px 12px;cursor:pointer}
+.mc.sel{background:var(--ac);color:#04121A}
+.ol{margin:0 0 8px;padding:0;list-style:none;counter-reset:s}
+.ol li{counter-increment:s;border:1px solid var(--ok);background:rgba(74,222,128,.1);padding:8px 12px;margin:6px 0;font-weight:600;animation:pop .3s}
+.ol li:before{content:counter(s);font-family:"Space Mono",monospace;color:var(--ok);margin-right:10px;font-weight:700}
+@keyframes pop{from{transform:scale(.94);opacity:0}}
+.btn{font:inherit;font-family:"Space Mono",monospace;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#04121A;background:var(--ac);border:0;padding:14px 16px;cursor:pointer;width:100%;box-shadow:0 0 18px rgba(var(--ar),.5)}
+.btn:active{transform:translateY(1px)}
+.btn.gh{background:transparent;color:var(--ac);border:1px solid var(--ac);box-shadow:none;margin-top:8px}
+.ds{text-align:center;font-weight:700;margin:6px 0;color:var(--am)}
+#sl{width:100%;accent-color:var(--ac);margin:8px 0 2px}
+.sl2{display:flex;justify-content:space-between;font-size:.75rem;color:var(--mut);margin-bottom:12px}
+.pr rect{fill:#0E1B40;stroke:var(--ac);stroke-width:1.5}
+.pr text{font-size:9px;font-weight:700;fill:var(--ink);text-anchor:middle;pointer-events:none}
+.pr{cursor:pointer}.pr.ok rect{fill:rgba(74,222,128,.3);stroke:var(--ok)}.pr.bad rect{fill:rgba(251,113,133,.3);stroke:var(--bad)}
+.fb{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(110%);transition:transform .3s;border-top:2px solid}
+.fb.show{transform:none}.fb.ok{background:#06241A;border-color:var(--ok)}.fb.bad{background:#2A0A14;border-color:var(--bad)}
+.fb div{max-width:488px;margin:0 auto}
+.fb h3{margin:0 0 2px;font-family:"Space Mono",monospace;letter-spacing:.06em}.fb.ok h3{color:var(--ok)}.fb.bad h3{color:var(--bad)}
+.fb p{margin:0 0 10px;font-size:.92rem}
+.fb.ok .btn{background:var(--ok);box-shadow:none}.fb.bad .btn{background:var(--bad);box-shadow:none}
+.ov{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,5,14,.82);backdrop-filter:blur(4px)}
+.ov.show{display:flex}
+.ov .card{max-width:430px;width:100%;max-height:92vh;overflow:auto}
+.ov h2{font-size:1.4rem;color:var(--ac)}
+.lg{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:.88rem;margin:10px 0;font-family:"Space Mono",monospace}
+.lg b{color:var(--am)}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.sg div{border:1px solid var(--line);padding:8px 4px;text-align:center;background:#0E1B40}
+.sg b{display:block;font-size:1.15rem;color:var(--ac);font-family:"Space Mono",monospace}.sg span{font-size:.7rem;color:var(--mut)}
+.cr{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:.88rem;font-weight:600}
+.dt{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;font-style:normal;font-size:.75rem;margin-left:3px;background:var(--line);color:var(--mut)}
+.dt.y{background:var(--ok);color:#04121A}.dt.n{background:var(--bad);color:#04121A}
+.ms{padding-left:18px;font-size:.85rem}.ms span{color:var(--mut)}
+.stars{text-align:center;font-size:2rem;color:var(--am);letter-spacing:6px}
+.sp{position:fixed;left:50%;bottom:34%;width:8px;height:8px;z-index:8;pointer-events:none;animation:fly 1s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(180deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.sp{display:none}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<main>
+  <header class="hud">
+    <div class="lab">MICROBE LAB<small>ECOLOGY QUEST</small></div>
+    <div class="st"><span id="score">0</span><button class="ex hide" id="exit" aria-label="Exit game">EXIT</button></div>
+  </header>
+  <div class="hp"><span>ECOSYSTEM</span><div class="bar" id="bar"><i id="hpf"></i></div><b id="hpn">100</b></div>
+  <div class="lvl" id="lvl"></div>
+  <section class="card"><div id="art"></div><h2 id="q"></h2><div id="ans"></div></section>
+</main>
+<div class="fb" id="fb"><div><h3 id="fbt"></h3><p id="fbp"></p><button class="btn" id="fbb">Continue</button></div></div>
+<div class="ov show" id="ov"><div class="card"><h2 id="ot"></h2><div id="ob"></div><button class="btn" id="obb" style="margin-top:12px"></button></div></div>
+
+<script>
+// ---------- Habitats and questions ----------
+// t = question type: pair (interaction diagram), zone (place microbes), order, dial (lake slider), nitro (tap the N cycle), mcq
+const HAB = [
+{ n:"Marine", sub:"Surface waters, the deep sea and hydrothermal vents", ac:"#22D3EE", c:"34,211,238", q:[
+ { t:"pair", n:["Bdellovibrio","Prey bacterium"], s:["+","−"], q:"Bdellovibrio invades other bacteria and feeds on them. Which interaction is this?", o:["Predation","Mutualism","Commensalism","Neutralism"], a:0, e:"Predation: the predator benefits (+) and the prey is harmed (−). Bdellovibrio enters the prey’s periplasm and consumes it." },
+ { t:"zone", q:"Place each microbe in the ocean zone where it thrives.", z:["Sunlit surface","Deep sea (cold, high pressure)","Hydrothermal vent (hot)"], items:[["Prochlorococcus",0],["Trichodesmium",0],["Piezophile (Moritella)",1],["Thermophilic archaeon",2],["Vent tubeworm symbiont",2]], e:"Adaptations match the habitat: cyanobacteria need light, piezophiles tolerate crushing pressure, and vent thermophiles survive extreme heat." },
+ { t:"mcq", q:"Which group does most of the ocean’s photosynthesis at the surface?", o:["Phytoplankton, including cyanobacteria","Sulfate-reducing bacteria","Fungi","Viruses"], a:0, e:"Marine phytoplankton (algae and cyanobacteria such as Prochlorococcus) fix carbon and form the base of the ocean food web." },
+ { t:"order", q:"Put the marine microbial loop in order.", s:["Phytoplankton release dissolved organic matter","Heterotrophic bacteria take up the dissolved matter","Protozoa graze on the bacteria","Zooplankton eat the protozoa"], e:"The microbial loop returns dissolved carbon to the food web." },
+ { t:"pair", n:["Vibrio fischeri","Bobtail squid"], s:["+","+"], q:"Vibrio fischeri glows inside a squid. The bacteria get food and shelter, and the squid gets camouflage from the light. Which interaction?", o:["Mutualism","Parasitism","Amensalism","Predation"], a:0, e:"Mutualism: both partners benefit (+ +). It is a symbiosis." }
+]},
+{ n:"Freshwater", sub:"Lakes, layers and nutrient dynamics", ac:"#84CC16", c:"132,204,22", q:[
+ { t:"zone", q:"Place each microbe in the lake layer where it lives.", z:["Surface water (light, oxygen)","Deep water (low oxygen)","Bottom sediment (no oxygen)"], items:[["Microcystis (cyanobacterium)",0],["Green algae",0],["Purple sulfur bacteria",1],["Methanogens",2],["Sulfate-reducing bacteria",2]], e:"Layers differ in light and oxygen. Phototrophs stay near the top, purple sulfur bacteria live where light meets sulfide, and methanogens and sulfate reducers thrive without oxygen." },
+ { t:"dial", q:"Fertilizer runoff feeds a lake. Set the nutrient input so the lake stays productive but does not bloom.", lo:30, hi:60, e:"Moderate nutrients (mesotrophic) support life. Too many nutrients cause blooms, then decomposers use up the oxygen (eutrophication)." },
+ { t:"order", q:"Put eutrophication in order.", s:["Fertilizer runoff adds nitrogen and phosphorus","Algae and cyanobacteria bloom","Dead algae sink and decomposers use up oxygen","Fish die and the bottom turns anoxic"], e:"Nutrient overload leads to a bloom, then oxygen depletion by decomposition." },
+ { t:"mcq", q:"How do bloom-forming cyanobacteria stay near the sunlit surface?", o:["Gas vesicles that make them buoyant","Heavy cell walls","Endospores","Flagella that swim to the sediment"], a:0, e:"Gas vesicles are gas-filled protein structures that let cyanobacteria float toward the light, an adaptation that helps blooms form." },
+ { t:"pair", n:["Cellulose degrader","Sugar user"], s:["+","0"], q:"One bacterium breaks cellulose into sugars. A second bacterium lives on those sugars, and the first is unaffected. Which interaction?", o:["Commensalism","Mutualism","Competition","Parasitism"], a:0, e:"Commensalism: one partner benefits (+) and the other is unaffected (0)." }
+]},
+{ n:"Terrestrial", sub:"Soil, roots and the nitrogen cycle", ac:"#F59E0B", c:"245,158,11", q:[
+ { t:"pair", n:["Rhizobium","Legume root"], s:["+","+"], q:"Rhizobium lives in legume root nodules and fixes nitrogen for the plant, while the plant feeds it. Which interaction?", o:["Mutualism","Commensalism","Amensalism","Parasitism"], a:0, e:"Mutualism: the plant gets ammonium from fixed N₂, and the bacteria get sugars and a home." },
+ { t:"nitro", q:"Tap the step carried out by Nitrobacter.", a:"nit2", e:"Nitrobacter oxidizes nitrite (NO₂⁻) to nitrate (NO₃⁻), the second step of nitrification." },
+ { t:"pair", n:["Streptomyces","Nearby bacteria"], s:["0","−"], q:"Streptomyces releases antibiotics that kill nearby bacteria, with no clear cost to itself. Which interaction?", o:["Amensalism (antagonism)","Mutualism","Commensalism","Neutralism"], a:0, e:"Amensalism: one organism is harmed (−) while the producer is unaffected (0)." },
+ { t:"nitro", q:"Tap the step that returns nitrogen gas to the air.", a:"den", e:"Denitrifying bacteria such as Pseudomonas convert nitrate to N₂ when oxygen is low." },
+ { t:"pair", n:["Agrobacterium","Plant"], s:["+","−"], q:"Agrobacterium tumefaciens infects plants and causes crown gall tumors. Which interaction?", o:["Parasitism (pathogenic)","Mutualism","Commensalism","Neutralism"], a:0, e:"Parasitism: the pathogen benefits (+) and the host is harmed (−)." }
+]}
+];
+
+// ---------- State and helpers ----------
+const $ = id => document.getElementById(id);
+const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let L = 0, Q = 0, health = 100, streak = 0, score = 0, lvlStart = 0, stars = 0, cur, st;
+let res = [[], [], []], missed = [], best = 0, t0 = Date.now(), cardOpen = false, mute = false, AC;
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function beep(f, d, t) {
+  if (mute) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const o = AC.createOscillator(), g = AC.createGain(), s = AC.currentTime + (t || 0);
+    o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(.07, s); g.gain.exponentialRampToValueAtTime(.001, s + d);
+    o.connect(g); g.connect(AC.destination); o.start(s); o.stop(s + d);
+  } catch (e) {}
+}
+function sparks() {
+  const cols = ["#22D3EE", "#4ADE80", "#FBBF24", "#F472B6"];
+  for (let i = 0; i < 16; i++) {
+    const d = document.createElement("span"), a = Math.random() * 6.283, r = 80 + Math.random() * 90;
+    d.className = "sp"; d.style.background = cols[i % 4];
+    d.style.setProperty("--dx", Math.cos(a) * r + "px"); d.style.setProperty("--dy", Math.sin(a) * r - 40 + "px");
+    document.body.appendChild(d); setTimeout(() => d.remove(), 1100);
+  }
+}
+
+// ---------- Glowing microbes in the background (more health = more microbes) ----------
+const bg = $("bg"), bx = bg.getContext("2d"); let W = 0, HT = 0;
+function fit() { W = bg.width = innerWidth; HT = bg.height = innerHeight; }
+addEventListener("resize", fit); fit();
+const mics = [];
+for (let i = 0; i < 46; i++) mics.push({ x: Math.random() * W, y: Math.random() * HT, r: 3 + Math.random() * 7, vx: (Math.random() - .5) * .4, vy: (Math.random() - .5) * .4, rod: Math.random() < .4, a: Math.random() * 6.28 });
+function paint() {
+  bx.clearRect(0, 0, W, HT);
+  const c = HAB[L].c, n = Math.round(14 + health * .32);
+  mics.slice(0, n).forEach(m => {
+    if (!calm) { m.x += m.vx; m.y += m.vy; m.a += .01; }
+    if (m.x < -20) m.x = W + 20; if (m.x > W + 20) m.x = -20; if (m.y < -20) m.y = HT + 20; if (m.y > HT + 20) m.y = -20;
+    bx.save(); bx.translate(m.x, m.y); bx.rotate(m.a);
+    bx.shadowColor = "rgb(" + c + ")"; bx.shadowBlur = 14; bx.fillStyle = "rgba(" + c + ",.3)"; bx.strokeStyle = "rgba(" + c + ",.85)"; bx.lineWidth = 1.5;
+    bx.beginPath();
+    if (m.rod) bx.rect(-m.r * 1.6, -m.r * .6, m.r * 3.2, m.r * 1.2); else bx.arc(0, 0, m.r, 0, 6.283);
+    bx.fill(); bx.stroke(); bx.restore();
+  });
+  if (!calm) requestAnimationFrame(paint);
+}
+
+// ---------- Diagrams ----------
+// two microbes with + / - / 0 badges showing who benefits
+function pairSvg(n, s) {
+  const col = x => x === "+" ? "#4ADE80" : x === "−" ? "#FB7185" : "#8AA0C8";
+  const cell = (cx, c, name, sg) => '<circle cx="' + cx + '" cy="62" r="34" fill="' + c + '" fill-opacity=".14" stroke="' + c + '" stroke-width="2.5"/><circle cx="' + (cx - 8) + '" cy="55" r="5" fill="' + c + '"/><circle cx="' + (cx + 9) + '" cy="68" r="4" fill="' + c + '" fill-opacity=".7"/>' +
+    '<text x="' + cx + '" y="119" text-anchor="middle" font-size="11" font-weight="700" fill="#E6EEFF">' + name + '</text>' +
+    '<circle cx="' + cx + '" cy="14" r="13" fill="#050A18" stroke="' + col(sg) + '" stroke-width="2"/><text x="' + cx + '" y="21" text-anchor="middle" font-size="19" font-weight="700" fill="' + col(sg) + '">' + sg + '</text>';
+  return '<svg viewBox="0 0 300 128" aria-label="Two microbes interacting">' + cell(70, "#22D3EE", n[0], s[0]) + cell(230, "#F472B6", n[1], s[1]) +
+    '<path d="M110 62 H190" stroke="#8AA0C8" stroke-width="2" stroke-dasharray="5 4"/><path d="M110 62 l8 -5 v10z M190 62 l-8 -5 v10z" fill="#8AA0C8"/></svg>';
+}
+// lake: water colour, algae dots, fish and oxygen change with nutrients
+function lakeSvg(v) {
+  const water = "hsl(" + (215 - v * 1.15) + ",62%," + (46 - v * .14) + "%)";
+  let s = '<svg viewBox="0 0 300 150" aria-label="Lake with algae"><rect width="300" height="150" fill="#050A18"/><rect y="28" width="300" height="122" fill="' + water + '"/><path d="M0 28 Q40 20 80 28 T160 28 T240 28 T320 28" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>';
+  for (let i = 0; i < Math.floor(v / 2.2); i++) s += '<circle cx="' + (12 + (i * 67) % 276) + '" cy="' + (34 + (i * 37) % 30) + '" r="' + (2 + i % 3) + '" fill="#B6F500" fill-opacity=".75"/>';
+  s += v <= 60 ? '<path d="M120 105 q18-16 36 0 q-18 16-36 0z M156 105 l14-9 v18z" fill="#FBBF24"/>' : '<text x="150" y="112" text-anchor="middle" font-size="18" font-weight="700" fill="#FB7185">✕ fish die</text>';
+  const ox = Math.max(0, 100 - Math.max(0, v - 45) * 1.8);
+  return s + '<text x="10" y="144" font-size="10" fill="#E6EEFF">Oxygen at depth</text><rect x="100" y="136" width="120" height="8" fill="#1B2C5A"/><rect x="100" y="136" width="' + 1.2 * ox + '" height="8" fill="' + (ox > 50 ? "#4ADE80" : "#FB7185") + '"/></svg>';
+}
+// nitrogen cycle: nodes and clickable process labels
+const NN = { N2: ["N₂ gas", 40, 100], NH4: ["NH₄⁺", 170, 28], NO2: ["NO₂⁻", 300, 100], NO3: ["NO₃⁻", 170, 172], ORG: ["Organic N", 170, 100] };
+const NE = [["fix", "N2", "NH4", "Fixation", 90, 52], ["nit1", "NH4", "NO2", "Nitrosomonas", 258, 52], ["nit2", "NO2", "NO3", "Nitrobacter", 262, 148], ["den", "NO3", "N2", "Denitrification", 78, 148], ["ass", "NO3", "ORG", "Assimilation", 170, 136], ["amm", "ORG", "NH4", "Ammonification", 170, 64]];
+function nitroSvg() {
+  let s = '<svg viewBox="0 0 340 200" aria-label="Nitrogen cycle"><defs><marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7z" fill="#8AA0C8"/></marker></defs>';
+  NE.forEach(e => {
+    const a = NN[e[1]], b = NN[e[2]], dx = b[1] - a[1], dy = b[2] - a[2], d = Math.hypot(dx, dy), ux = dx / d, uy = dy / d;
+    s += '<line x1="' + (a[1] + ux * 23) + '" y1="' + (a[2] + uy * 23) + '" x2="' + (b[1] - ux * 23) + '" y2="' + (b[2] - uy * 23) + '" stroke="#8AA0C8" stroke-width="1.6" marker-end="url(#ar)"/>';
+  });
+  Object.keys(NN).forEach(k => { const n = NN[k]; s += '<circle cx="' + n[1] + '" cy="' + n[2] + '" r="21" fill="#0B1530" stroke="#F59E0B" stroke-width="2"/><text x="' + n[1] + '" y="' + (n[2] + 3.5) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#FBBF24">' + n[0] + '</text>'; });
+  NE.forEach(e => { const w = e[3].length * 5.3 + 12; s += '<g class="pr" data-k="' + e[0] + '" tabindex="0"><rect x="' + (e[4] - w / 2) + '" y="' + (e[5] - 9) + '" width="' + w + '" height="18" rx="3"/><text x="' + e[4] + '" y="' + (e[5] + 3.5) + '">' + e[3] + '</text></g>'; });
+  return s + '</svg>';
+}
+
+// ---------- Screen ----------
+function hud() {
+  $("score").textContent = score;
+  $("hpn").textContent = Math.max(0, health);
+  $("hpf").style.width = Math.max(0, health) + "%";
+  $("bar").classList.toggle("low", health < 40);
+  const h = HAB[L], r = document.documentElement.style;
+  r.setProperty("--ac", h.ac); r.setProperty("--ar", h.c);
+  if (calm) paint();
+}
+function ov(t, html, btn, fn) {
+  $("ot").textContent = t; $("ob").innerHTML = html; $("obb").textContent = btn;
+  $("obb").onclick = () => { $("ov").classList.remove("show"); $("ob").innerHTML = ""; fn(); };
+  $("ov").classList.add("show");
+}
+function render() {
+  cur = HAB[L].q[Q]; st = {};
+  $("lvl").innerHTML = "<b>" + HAB[L].n + "</b> | Challenge " + (Q + 1) + " of 5";
+  $("art").innerHTML = cur.t === "pair" ? pairSvg(cur.n, cur.s) : cur.t === "nitro" ? nitroSvg() : "";
+  $("q").textContent = cur.q;
+  hud();
+  ({ pair: buildMcq, mcq: buildMcq, zone: buildZone, order: buildOrder, dial: buildDial, nitro: buildNitro })[cur.t]();
+}
+
+function buildMcq() {
+  const o = shuffle(cur.o.map((x, i) => ({ x, ok: i === cur.a })));
+  $("ans").innerHTML = "";
+  o.forEach(op => {
+    const b = document.createElement("button");
+    b.className = "opt"; b.textContent = op.x;
+    b.onclick = () => {
+      if (st.done) return; st.done = 1;
+      b.classList.add(op.ok ? "ok" : "bad");
+      if (!op.ok) [...$("ans").children].forEach((c, i) => { if (o[i].ok) c.classList.add("ok"); });
+      setTimeout(() => done(op.ok), 450);
+    };
+    $("ans").appendChild(b);
+  });
+}
+
+// tap a microbe, then tap the habitat zone where it lives
+function buildZone() { st.m = {}; st.sel = null; st.miss = 0; st.msg = ""; st.o = shuffle(cur.items.map((x, i) => i)); drawZone(); }
+function drawZone() {
+  let h = '<div class="zs">';
+  cur.z.forEach((z, i) => {
+    const placed = cur.items.filter((it, j) => st.m[j] && it[1] === i).map(it => '<span class="pl">' + it[0] + '</span>').join("");
+    h += '<button class="zb" data-z="' + i + '" style="--i:' + i + '"><b>' + z + '</b>' + placed + '</button>';
+  });
+  h += '</div><p class="msg">' + (st.msg || "Tap a microbe, then tap its zone.") + '</p><div class="pool">';
+  st.o.forEach(j => { if (!st.m[j]) h += '<button class="mc' + (st.sel === j ? " sel" : "") + '" data-j="' + j + '">' + cur.items[j][0] + '</button>'; });
+  $("ans").innerHTML = h + '</div>';
+  $("ans").querySelectorAll(".mc").forEach(b => b.onclick = () => { st.sel = +b.dataset.j; st.msg = "Now tap the zone."; drawZone(); });
+  $("ans").querySelectorAll(".zb").forEach(b => b.onclick = () => {
+    if (st.done || st.sel === null) return;
+    const j = st.sel;
+    if (cur.items[j][1] === +b.dataset.z) {
+      st.m[j] = 1; st.sel = null; st.msg = "Correct!"; beep(660, .1);
+      if (Object.keys(st.m).length === cur.items.length) { st.done = 1; setTimeout(() => done(st.miss === 0), 600); }
+    } else { st.miss++; st.msg = "Not there. Try another zone."; beep(200, .15); }
+    drawZone();
+  });
+}
+
+// tap the steps in the right order
+function buildOrder() { st.p = []; st.miss = 0; st.sh = shuffle(cur.s.map((x, i) => i)); drawOrder(); }
+function drawOrder() {
+  let h = '<ol class="ol">' + st.p.map(i => '<li>' + cur.s[i] + '</li>').join("") + '</ol>';
+  st.sh.forEach(i => { if (!st.p.includes(i)) h += '<button class="opt" data-i="' + i + '">' + cur.s[i] + '</button>'; });
+  $("ans").innerHTML = h;
+  $("ans").querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    const i = +b.dataset.i;
+    if (i === st.p.length) { st.p.push(i); beep(660, .1); drawOrder(); if (st.p.length === cur.s.length) setTimeout(() => done(st.miss === 0), 500); }
+    else { st.miss++; b.classList.add("bad"); beep(200, .15); setTimeout(() => b.classList.remove("bad"), 400); }
+  });
+}
+
+// lake slider
+function buildDial() {
+  $("ans").innerHTML = '<div class="ds" id="ds"></div><input id="sl" type="range" min="0" max="100" value="10" aria-label="Nutrient input"><div class="sl2"><span>Low nutrients</span><span>High nutrients</span></div><button class="btn" id="lock">Lock in</button>';
+  const upd = v => {
+    st.v = v; $("art").innerHTML = lakeSvg(v);
+    $("ds").textContent = v < cur.lo ? "Oligotrophic: clear water, low productivity" : v <= cur.hi ? "Mesotrophic: balanced and healthy" : "Eutrophic: algal bloom, oxygen crash";
+  };
+  upd(10);
+  $("sl").oninput = () => { if (!st.done) upd(+$("sl").value); };
+  $("lock").onclick = () => { if (st.done) return; st.done = 1; beep(500, .1); done(st.v >= cur.lo && st.v <= cur.hi); };
+}
+
+// tap a process in the nitrogen cycle
+function buildNitro() {
+  $("ans").innerHTML = '<p class="msg">Tap the correct process in the diagram.</p>';
+  $("art").querySelectorAll(".pr").forEach(g => g.onclick = () => {
+    if (st.done) return; st.done = 1;
+    const ok = g.dataset.k === cur.a;
+    g.classList.add(ok ? "ok" : "bad");
+    if (!ok) $("art").querySelector('[data-k="' + cur.a + '"]').classList.add("ok");
+    beep(ok ? 660 : 200, .15); setTimeout(() => done(ok), 700);
+  });
+}
+
+// ---------- Answer feedback and flow ----------
+function done(ok) {
+  const bonus = Math.min(streak, 5) * 10;
+  if (ok) { score += 100 + bonus; streak++; health = Math.min(100, health + 6); beep(660, .12); beep(880, .18, .12); sparks(); }
+  else { health -= 30; streak = 0; beep(180, .3); }
+  res[L][Q] = ok; best = Math.max(best, streak);
+  if (!ok) missed.push({ c: HAB[L].n, q: cur.q, e: cur.e });
+  hud(); if (cardOpen) showCard(false);
+  $("fb").className = "fb show " + (ok ? "ok" : "bad");
+  $("fbt").textContent = ok ? "CORRECT +" + (100 + bonus) : "ECOSYSTEM DAMAGED −30";
+  $("fbp").textContent = cur.e;
+  document.body.classList.add("pad");
+  $("fbb").onclick = () => {
+    $("fb").className = "fb"; document.body.classList.remove("pad");
+    if (health <= 0) collapse(); else { Q++; Q === 5 ? habitatDone() : render(); }
+  };
+}
+function intro() {
+  health = 100; Q = 0; lvlStart = score; hud();
+  ov("Habitat " + (L + 1) + ": " + HAB[L].n, "<p>" + HAB[L].sub + ".</p><p>Answer 5 challenges. Right answers heal the ecosystem. Wrong answers damage it by 30.</p>", "Enter habitat", render);
+}
+function collapse() {
+  ov("Ecosystem collapsed", "<p>Read the explanations and try this habitat again.</p>", "Retry habitat", () => { score = lvlStart; streak = 0; health = 100; Q = 0; res[L] = []; missed = missed.filter(m => m.c !== HAB[L].n); render(); });
+}
+function habitatDone() {
+  const s = health >= 70 ? 3 : health >= 40 ? 2 : 1; stars += s;
+  ov("Habitat stable", '<div class="stars">' + "★".repeat(s) + "☆".repeat(3 - s) + '</div><p>Score so far: <b>' + score + '</b></p>', L < 2 ? "Next habitat" : "See my report", () => { if (L < 2) { L++; intro(); } else showCard(true); });
+}
+
+// ---------- Scorecard (on exit and at the end) ----------
+function showCard(final) {
+  cardOpen = true;
+  let ans = 0, ok = 0;
+  res.forEach(r => r.forEach(v => { ans++; if (v) ok++; }));
+  const acc = ans ? Math.round(ok / ans * 100) : 0, sec = Math.round((Date.now() - t0) / 1000);
+  const rank = score >= 1700 ? "Ecosystem Master" : score >= 1200 ? "Field Scientist" : score >= 600 ? "Lab Trainee" : "Curious Microbe";
+  const rows = HAB.map((c, i) => {
+    let d = "";
+    for (let q = 0; q < 5; q++) { const v = res[i][q]; d += '<i class="dt ' + (v === undefined ? "" : v ? "y" : "n") + '">' + (v === undefined ? "-" : v ? "✓" : "✗") + '</i>'; }
+    return '<div class="cr"><span>' + c.n + '</span><span>' + d + '</span></div>';
+  }).join("");
+  const miss = missed.length ? '<h3>Revise these</h3><ul class="ms">' + missed.map(m => '<li><b>' + m.c + ':</b> ' + m.q + '<br><span>' + m.e + '</span></li>').join("") + '</ul>' : (ans ? "<p>No mistakes so far. Great work!</p>" : "");
+  const html = '<div class="stars">' + stars + ' / 9 ★</div><div class="sg"><div><b>' + score + '</b><span>Score</span></div><div><b>' + acc + '%</b><span>Accuracy</span></div><div><b>' + ans + '/15</b><span>Answered</span></div>' +
+    '<div><b>' + ok + '</b><span>Correct</span></div><div><b>' + (ans - ok) + '</b><span>Wrong</span></div><div><b>' + best + '</b><span>Best streak</span></div></div>' +
+    '<p class="msg">Time: ' + Math.floor(sec / 60) + 'm ' + sec % 60 + 's | Ecosystem health: ' + Math.max(0, health) + '</p>' + rows + miss +
+    '<button class="btn gh" id="sc2">' + (final ? "Back to start" : "End game") + '</button>';
+  ov((final ? "Final report: " : "Scorecard: ") + rank, html, final ? "Play again" : "Resume game", final ? begin : () => { cardOpen = false; });
+  $("sc2").onclick = () => { $("ov").classList.remove("show"); $("ob").innerHTML = ""; cardOpen = false; welcome(); };
+}
+
+function begin() {
+  L = 0; score = 0; streak = 0; stars = 0; res = [[], [], []]; missed = []; best = 0; t0 = Date.now(); cardOpen = false;
+  $("exit").classList.remove("hide"); intro();
+}
+function welcome() {
+  $("exit").classList.add("hide"); L = 0; health = 100; hud();
+  $("lvl").textContent = ""; $("art").innerHTML = ""; $("q").textContent = ""; $("ans").innerHTML = "";
+  ov("Microbe Lab: Ecology Quest",
+    "<p>Microbes never live alone. Explore how they interact, adapt and shape the environment in 3 habitats: marine, freshwater and soil.</p>" +
+    '<div class="lg"><span>Mutualism</span><b>+ +</b><span>Commensalism</span><b>+ 0</b><span>Amensalism</span><b>0 −</b><span>Predation / parasitism</span><b>+ −</b><span>Competition</span><b>− −</b><span>Neutralism</span><b>0 0</b></div>' +
+    "<p>15 challenges. Exit any time to see your scorecard.</p>", "Start", begin);
+}
+
+$("exit").onclick = () => showCard(false);
+welcome();
+paint();
+</script>
+</body>
+</html>
